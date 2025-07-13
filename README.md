@@ -6,15 +6,6 @@ This is a **monorepo** containing both the `frontend` (React + TailwindCSS) and 
 
 ---
 
-## 📁 Project Structure
-devhelper-ai/
-├── devhelper-frontend/ # React + TailwindCSS Web UI
-├── devhelper-backend/ # FastAPI + LangChain + Gemini APIs
-├── README.md # You're here!
-├── .gitignore # Shared Git ignore rules
-└── .env.example # Sample env variables
-
-
 ---
 
 ## 🧠 Features
