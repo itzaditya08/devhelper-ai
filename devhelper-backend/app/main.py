@@ -26,10 +26,13 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allow listed dev frontend origins
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://devhelper-frontend.vercel.app" # The EXACT Vercel URL (no trailing slash)
+    ],
     allow_credentials=True,
-    allow_methods=["*"],     # Allow all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],     # Allow all headers (including content-type)
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ✅ Health Check Route
