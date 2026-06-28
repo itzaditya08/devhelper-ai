@@ -27,8 +27,8 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173", 
-        "https://devhelper-frontend.vercel.app" # The EXACT Vercel URL (no trailing slash)
+        "http://localhost:5173",
+        "https://devhelper-ai.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
