@@ -1,8 +1,14 @@
 # app/main.py
+import os
+from dotenv import load_dotenv
+
+# Load environment variables immediately before any other local imports
+load_dotenv() 
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints.all_routes import router as all_routes
+
 
 app = FastAPI(
     title="🧠 DevHelperAI API",

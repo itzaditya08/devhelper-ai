@@ -1,58 +1,40 @@
-// src/components/Navbar.jsx
-import { NavLink } from "react-router-dom";
-import ThemeToggle from "./ThemeToggle";
-import logo from "../assets/logo.png";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import Logo from "./Logo"; // Import the new component
+import { Bot, Code2, FileText, Image, Search, LayoutGrid } from "lucide-react";
 
-const features = [
-  { path: "/code-explainer", label: "Code Explainer" },
-  { path: "/readme-insights", label: "Readme Insights" },
-  { path: "/code-refactorer", label: "Code Refactorer" },
-  { path: "/boilerplate-generator", label: "Boilerplate Generator" },
-  { path: "/directory-analyser", label: "Directory Analyser" },
-  { path: "/code-canvas", label: "Code Canvas" },
-];
+export default function Navbar() {
+  const location = useLocation();
+  const navItems = [
+    { name: "Explainer", path: "/explainer", icon: <Bot size={16} /> },
+    { name: "Boilerplate", path: "/boilerplate", icon: <Code2 size={16} /> },
+    { name: "Canvas", path: "/canvas", icon: <Image size={16} /> },
+    { name: "Refactor", path: "/refactor", icon: <LayoutGrid size={16} /> },
+    { name: "Analysis", path: "/directory", icon: <Search size={16} /> },
+    { name: "Docs", path: "/readme", icon: <FileText size={16} /> },
+  ];
 
-const Navbar = () => {
   return (
-    <nav className="w-full flex flex-col md:flex-row items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 shadow-md">
-      {/* Left - Logo and Site Name */}
-      <NavLink to="/" className="flex items-center gap-3">
-        <img src={logo} alt="DevHelperAI Logo" className="h-10 w-10" />
-        <div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-            DevHelperAI
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Your AI-powered Dev Companion
-          </p>
-        </div>
-      </NavLink>
-
-      {/* Center - Navigation Buttons */}
-      <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 mt-4 md:mt-0 md:gap-4 justify-center">
-        {features.map((feature) => (
-          <NavLink
-            key={feature.path}
-            to={feature.path}
-            className={({ isActive }) =>
-              `text-sm px-3 py-2 rounded-md font-medium transition-colors ${
-                isActive
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white hover:bg-blue-100 dark:hover:bg-blue-700"
-              }`
-            }
+    <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-slate-950/70 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+      <Link to="/" className="flex items-center gap-3">
+        <Logo size={36} />
+        <span className="font-black text-xl tracking-tight text-white">DevHelper<span className="text-indigo-400"> AI</span></span>
+      </Link>
+      
+      <div className="flex items-center gap-1 bg-slate-900/50 p-1 rounded-xl border border-white/5">
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+              location.pathname === item.path ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-white"
+            }`}
           >
-            {feature.label}
-          </NavLink>
+            {item.icon}
+            {item.name}
+          </Link>
         ))}
-      </div>
-
-      {/* Right - Theme Toggle */}
-      <div className="mt-4 md:mt-0">
-        <ThemeToggle />
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}

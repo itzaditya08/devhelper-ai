@@ -1,41 +1,26 @@
-# app/services/directory_analyser_service.py
-
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from app.llm.gemini_llm import get_gemini_chat_model
+from app.schemas.code_responses import DirectoryAnalysisResponseSchema
 
-# ✅ Prompt Template
 prompt_template = ChatPromptTemplate.from_template(
     """
 You are a helpful AI assistant that analyzes software project structures.
+Analyze the following directory structure and provide a comprehensive architectural breakdown.
 
-Given a directory structure in text format, provide the following in a clean, structured response:
-
-1. ✅ A concise **project summary**
-2. ✅ Its **use case**
-3. ✅ **Each file/folder explained** in 1-2 lines
-4. ✅ A short section on **how the files work together**
-
-Here is the directory structure:
+Directory Structure:
 {directory}
 """
 )
 
-# ✅ Main logic
-def analyse_directory(directory_structure_text: str) -> str:
+def analyse_directory(directory_structure_text: str) -> dict:
     try:
-        # Step 1: Create the full prompt
         prompt = prompt_template
-
-        # Step 2: Load Gemini
         llm = get_gemini_chat_model()
+        structured_llm = llm.with_structured_output(DirectoryAnalysisResponseSchema)
 
-        # Step 3: Chain with output parser
-        chain = prompt | llm | StrOutputParser()
+        chain = prompt | structured_llm
+        response: DirectoryAnalysisResponseSchema = chain.invoke({"directory": directory_structure_text})
 
-        # ❗️ FIX: Wrap input as dictionary
-        result = chain.invoke({"directory": directory_structure_text})
-
-        return result.strip()
+        return response.model_dump()
     except Exception as e:
-        return f"❌ Error while analyzing directory structure: {str(e)}"
+        return {"error": f"Error while analyzing directory structure: {str(e)}"}

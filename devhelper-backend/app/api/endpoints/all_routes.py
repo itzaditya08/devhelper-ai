@@ -11,11 +11,13 @@ from app.api.endpoints.boilerplate_generator import router as boilerplate_genera
 from app.api.endpoints.code_canvas import router as code_canvas_router
 
 
+
 # Create the main router
 router = APIRouter()
 
 # Include each feature-specific router
-router.include_router(code_explainer_router, prefix="/code-explainer", tags=["Code Explainer"])
+# router.include_router(code_explainer_router, prefix="/code-explainer", tags=["Code Explainer"])
+router.include_router(code_explainer_router, prefix="/api/endpoints")
 router.include_router(readme_insights_router, prefix="/readme-insights", tags=["ReadMe Insights"])
 router.include_router(code_refactorer_router, prefix="/code-refactorer", tags=["Code Refactorer"])
 router.include_router(directory_analyser_router, prefix="/directory-analyser", tags=["Directory Analyser"])

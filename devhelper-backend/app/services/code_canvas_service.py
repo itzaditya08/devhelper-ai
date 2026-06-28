@@ -1,61 +1,42 @@
-# app/services/code_canvas_service.py
 
 import os
-from PIL import Image
-from typing import Dict, Union
-
-from langchain_core.messages import HumanMessage, SystemMessage
-
+import base64
 from app.llm.gemini_llm import get_gemini_vision_model
+from app.schemas.code_responses import CodeCanvasResponseSchema
 
-
-def generate_code_from_image(image_path: str) -> Union[Dict[str, str], str]:
-    """
-    Accepts the path to a UI image and returns:
-    {
-        "backend": "<API structure>",
-        "frontend": "<HTML/CSS/JS or React boilerplate>"
-    }
-    """
+def generate_code_from_image(image_path: str) -> dict:
     try:
-        # ✅ Step 1: Load Image from disk
-        image = Image.open(image_path)
+        if not os.path.exists(image_path):
+            return {"error": f"Image file not found at path: {image_path}"}
 
-        # ✅ Step 2: Load Gemini 1.5 Flash (Vision Model)
-        model = get_gemini_vision_model()
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
 
-        # ✅ Step 3: Prepare prompt (system + human)
-        system_prompt = SystemMessage(
-            content=(
-                "You are a full-stack developer assistant. A user has uploaded a UI image "
-                "of a website or app. Analyze the UI structure and generate structured output."
-            )
+        # Fetch your exact vision model instance
+        raw_model = get_gemini_vision_model()
+        
+        # Structure the model definition with structured constraints binded safely
+        structured_llm = raw_model.with_structured_output(CodeCanvasResponseSchema)
+
+        # Base prompt structure explicitly formatted for Gemini 2.5 Multi-modal vision processing
+        prompt = (
+            "Analyze this user interface mockup snapshot. "
+            "Extract and separate the UI design into structured frontend React canvas code structures "
+            "and backend REST route definitions."
         )
 
-        human_prompt = HumanMessage(
-            content=[
-                {
-                    "type": "text",
-                    "text": (
-                        "Given this UI image, do the following:\n"
-                        "1. Generate a REST-style API structure for the backend (Flask/FastAPI style pseudocode).\n"
-                        "2. Generate frontend boilerplate code (HTML/CSS/JS or React preferred).\n"
-                        "3. Output must be a JSON with two keys: 'backend' and 'frontend'.\n"
-                        "4. Be clean, concise, and only return valid JSON.\n"
-                        "5. Avoid explanations—output only the result."
-                    )
-                },
-                {
-                    "type": "image_url",
-                    "image_url": image
-                }
-            ]
-        )
+        # Correct schema layout processing payload array
+        response = structured_llm.invoke([
+            prompt,
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{encoded_string}"}
+            }
+        ])
+        
+        return response.model_dump()
 
-        # ✅ Step 4: Invoke model with prompt
-        response = model.invoke([system_prompt, human_prompt])
-
-        return response.content  # Should be a well-structured JSON string (or dict)
-    
     except Exception as e:
-        return {"error": f"❌ Failed to generate code: {str(e)}"}
+        print(f"❌ Critical error in code_canvas_service: {str(e)}")
+        return {"error": f"Failed to execute vision mapping analysis: {str(e)}"}
+    

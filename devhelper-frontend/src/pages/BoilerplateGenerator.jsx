@@ -1,137 +1,57 @@
 import React, { useState } from "react";
-import ResponseBox from "../components/ResponseBox";
-import Sliders from "../components/Sliders";
-import { generateBoilerplate } from "../utils/api";
-import { motion } from "framer-motion";
+import { apiService } from "../utils/api";
+import { ResponseBox } from "../components/ResponseBox";
+import { Code2 } from "lucide-react";
 
-const BoilerplateGenerator = () => {
-  const [algorithm, setAlgorithm] = useState("Binary Search");
-  const [language, setLanguage] = useState("C++");
-  const [output, setOutput] = useState("");
+export default function BoilerplateGenerator() {
+  const [algorithm, setAlgorithm] = useState("");
+  const [language, setLanguage] = useState("python");
   const [loading, setLoading] = useState(false);
-  const [showOutput, setShowOutput] = useState(false);
+  const [response, setResponse] = useState(null);
 
-  const algorithms = [
-    "Binary Search", "Merge Sort", "Dijkstra's Algorithm", 
-    "Kruskal's Algorithm", "Floyd Warshall", "Topological Sort", "sum of two number"
-  ];
-
-  const languages = ["C++", "Python", "Java", "JavaScript", "Go", "Rust"];
-
-  const handleGenerate = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    setShowOutput(false);
-    const result = await generateBoilerplate(algorithm, language);
-    setOutput(result);
+    const data = await apiService.generateBoilerplate(algorithm, language);
+    setResponse(data);
     setLoading(false);
-    setShowOutput(true);
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6 text-primary">Boilerplate Generator</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <select
-          className="w-full p-3 rounded-lg border bg-white text-black 
-                     dark:bg-zinc-800 dark:text-white dark:border-gray-700"
-          value={algorithm}
-          onChange={(e) => setAlgorithm(e.target.value)}
-        >
-          {algorithms.map((algo) => (
-            <option key={algo} value={algo}>
-              {algo}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="w-full p-3 rounded-lg border bg-white text-black 
-                     dark:bg-zinc-800 dark:text-white dark:border-gray-700"
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-        >
-          {languages.map((lang) => (
-            <option key={lang} value={lang}>
-              {lang}
-            </option>
-          ))}
-        </select>
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="mb-12">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
+            <Code2 size={24} />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight">Algorithmic <span className="text-emerald-400">Synthesis</span></h1>
+        </div>
+        <p className="text-slate-500 ml-16">Instantly generate clean, idiomatic code snippets.</p>
       </div>
 
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        whileHover={{ scale: 1.02 }}
-        className="w-full mt-2 py-3 rounded-md shadow-md 
-             bg-blue-600 text-white 
-             dark:bg-blue-500 dark:text-white 
-             hover:bg-blue-700 dark:hover:bg-blue-600 
-             disabled:opacity-60 text-center font-medium"
-        onClick={handleGenerate}
-        disabled={loading}
-      >
-        {loading ? "Generating..." : "Generate Boilerplate"}
-      </motion.button>
+      <div className="bg-[#0b0e14] border border-[#1f2937] p-8 rounded-2xl mb-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <input 
+            value={algorithm} onChange={(e) => setAlgorithm(e.target.value)} 
+            placeholder="e.g. Dijkstra's Shortest Path..." 
+            className="w-full bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-white outline-none focus:border-emerald-500" 
+          />
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-slate-400 outline-none focus:border-emerald-500">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+          </select>
+          <button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-lg transition-all">
+            {loading ? "Generating..." : "Generate Boilerplate"}
+          </button>
+        </form>
+      </div>
 
-      {showOutput && <ResponseBox response={output} />}
-
-      <Sliders
-        title="How Boilerplate Generator Works"
-        sections={[
-          {
-            title: "Usage Steps",
-            cards: [
-              {
-                title: "Select Algorithm",
-                description: "Choose a famous algorithm from the list.",
-                color: "#3B82F6", // Blue
-              },
-              {
-                title: "Select Language",
-                description: "Pick the target language for the boilerplate.",
-                color: "#8B5CF6", // Purple
-              },
-              {
-                title: "Click Generate",
-                description: "Hit the generate button to call the AI.",
-                color: "#10B981", // Green
-              },
-              {
-                title: "Copy Result",
-                description: "Get the generated code and copy it easily.",
-                color: "#EC4899", // Pink
-              },
-            ],
-          },
-          {
-            title: "Implementation Details",
-            cards: [
-              {
-                title: "LangChain + Gemini",
-                description: "The backend uses LangChain with Gemini Pro.",
-                color: "#F59E0B", // Amber
-              },
-              {
-                title: "Dropdown Inputs",
-                description: "User input collected from dropdown selectors.",
-                color: "#6366F1", // Indigo
-              },
-              {
-                title: "Structured Prompting",
-                description: "Backend prompt is built with selected inputs.",
-                color: "#D97706", // Yellowish
-              },
-              {
-                title: "Copy + Animation",
-                description: "Response is animated with a copy button.",
-                color: "#0EA5E9", // Sky Blue
-              },
-            ],
-          },
-        ]}
-      />
+      {response && (
+        <div className="animate-fadeIn">
+          <ResponseBox data={response} type="boilerplate" />
+        </div>
+      )}
     </div>
   );
-};
-
-export default BoilerplateGenerator;
+}

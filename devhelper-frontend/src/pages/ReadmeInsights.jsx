@@ -1,131 +1,101 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import ResponseBox from "../components/ResponseBox";
-import Sliders from "../components/Sliders";
-import { getReadmeInsights } from "../utils/api";
-import Uploader from "../components/Uploader";
+import { apiService } from "../utils/api";
+import { ResponseBox } from "../components/ResponseBox";
+import { FileText, ShieldCheck, BarChart3 } from "lucide-react";
 
-const ReadmeInsights = () => {
+export default function ReadmeInsights() {
   const [readmeFile, setReadmeFile] = useState(null);
-  const [metaFile, setMetaFile] = useState(null);
+  const [extraFile, setExtraFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [output, setOutput] = useState("");
-  const [showOutput, setShowOutput] = useState(false);
+  const [response, setResponse] = useState(null);
 
-  const handleSubmit = async () => {
-    if (!readmeFile && !metaFile) return;
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!readmeFile) return;
     setLoading(true);
-    setShowOutput(false);
-    const formData = new FormData();
-    if (readmeFile) formData.append("readme", readmeFile);
-    if (metaFile) formData.append("meta", metaFile);
-
+    setResponse(null); // Clear previous runs
     try {
-      const response = await getReadmeInsights(formData);
-      setOutput(response);
-      setShowOutput(true);
+      const data = await apiService.getReadmeInsights(readmeFile, extraFile);
+      setResponse(data);
     } catch (err) {
-      setOutput("❌ Failed to fetch insights.");
-      setShowOutput(true);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold mb-6 text-primary">Readme Insights</h1>
-
-      {/* File upload inputs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <Uploader
-          title="Upload README.md"
-          accept=".md"
-          onFileSelect={setReadmeFile}
-        />
-        <Uploader
-          title="Upload meta file (.json / .txt)"
-          accept=".json,.txt"
-          onFileSelect={setMetaFile}
-        />
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      {/* Normalized Layout Workspace Header */}
+      <div className="mb-12">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="p-3 bg-violet-500/10 rounded-xl text-violet-400 border border-violet-500/20">
+            <FileText size={24} />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Documentation <span className="text-violet-400">Audit</span>
+          </h1>
+        </div>
+        <p className="text-slate-500 ml-16">
+          Professional-grade analysis for your project's technical clarity.
+        </p>
       </div>
 
-      {/* Submit button */}
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        whileHover={{ scale: 1.02 }}
-        onClick={handleSubmit}
-        disabled={loading || (!readmeFile && !metaFile)}
-        className="w-full py-3 rounded-md shadow-md 
-                   bg-green-600 text-white 
-                   dark:bg-green-500 dark:text-white 
-                   hover:bg-green-700 dark:hover:bg-green-600 
-                   disabled:opacity-60 font-medium"
-      >
-        {loading ? "Generating Insights..." : "Generate Insights"}
-      </motion.button>
+      {/* Structured Input Workspace Container */}
+      <div className="bg-[#0b0e14] border border-[#1f2937] p-8 rounded-2xl mb-8 shadow-xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* README Upload Box */}
+            <label className="flex items-center gap-4 p-6 rounded-xl bg-[#161b22] border border-[#30363d] cursor-pointer hover:border-violet-500/50 transition-all group">
+              <div className="p-3 bg-violet-500/10 rounded-xl text-violet-400 border border-violet-500/10 group-hover:border-violet-500/30 transition-colors">
+                <FileText size={20} />
+              </div>
+              <span className="font-medium text-sm text-slate-300 truncate">
+                {readmeFile ? readmeFile.name : "Primary README.md"}
+              </span>
+              <input type="file" accept=".md" className="hidden" onChange={(e) => setReadmeFile(e.target.files[0])} />
+            </label>
 
-      {/* Output */}
-      {showOutput && <ResponseBox response={output} />}
+            {/* Optional Context Upload Box */}
+            <label className="flex items-center gap-4 p-6 rounded-xl bg-[#161b22] border border-[#30363d] cursor-pointer hover:border-rose-500/50 transition-all group">
+              <div className="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/10 group-hover:border-rose-500/30 transition-colors">
+                <ShieldCheck size={20} />
+              </div>
+              <span className="font-medium text-sm text-slate-400 truncate">
+                {extraFile ? extraFile.name : "Config File (Optional)"}
+              </span>
+              <input type="file" className="hidden" onChange={(e) => setExtraFile(e.target.files[0])} />
+            </label>
+          </div>
 
-      {/* Sliders Info */}
-      <Sliders
-        title="How This Feature Works"
-        sections={[
-          {
-            title: "Steps",
-            cards: [
-              {
-                title: "Upload README",
-                description: "Start by uploading a valid README.md file.",
-                color: "#34D399",
-              },
-              {
-                title: "Upload Optional Meta File",
-                description:
-                  "Add an optional .json or .txt config file to enrich analysis.",
-                color: "#FBBF24",
-              },
-              {
-                title: "Click Generate",
-                description: "Click the button to analyze with GenAI backend.",
-                color: "#60A5FA",
-              },
-              {
-                title: "Review Insights",
-                description: "Understand tech stack, features, gaps & score.",
-                color: "#A78BFA",
-              },
-            ],
-          },
-          {
-            title: "Implementation",
-            cards: [
-              {
-                title: "Frontend",
-                description:
-                  "React + Tailwind + Framer Motion. File input managed via custom Uploader component.",
-                color: "#E879F9",
-              },
-              {
-                title: "Backend",
-                description:
-                  "LangChain + Gemini model processes uploaded files and extracts insights.",
-                color: "#F472B6",
-              },
-              {
-                title: "API Format",
-                description:
-                  "POST /readme-insights with multipart/form-data (readme, meta).",
-                color: "#F87171",
-              },
-            ],
-          },
-        ]}
-      />
+          {/* Core Action Handle Trigger */}
+          <button 
+            disabled={loading || !readmeFile}
+            className="w-full bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg transition-all"
+          >
+            {loading ? "Auditing Documentation Stack..." : "Run Audit Insights"}
+          </button>
+        </form>
+      </div>
+
+      {/* Processing Animation / Results Render Interface Block */}
+      {loading ? (
+        <div className="py-20 flex flex-col items-center justify-center text-slate-500 space-y-4">
+          <BarChart3 className="animate-pulse text-violet-400" size={40} />
+          <p className="font-mono text-xs uppercase tracking-widest text-slate-600 animate-pulse">
+            Generating Insight Vectors...
+          </p>
+        </div>
+      ) : (
+        response && (
+          <div className="animate-fadeIn">
+            <ResponseBox data={response} type="readme" />
+          </div>
+        )
+      )}
+
+      
     </div>
   );
-};
+}
 
-export default ReadmeInsights;

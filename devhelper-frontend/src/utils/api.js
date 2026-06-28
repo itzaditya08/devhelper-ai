@@ -1,97 +1,102 @@
-import axios from 'axios';
+import { mockData } from "./mockData";
 
-const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // Update this to your backend URL
-});
+// TOGGLE THIS TRUE TO RUN THE SYSTEM WITHOUT THE BACKEND RUNNING
+const USE_MOCK = false; 
 
-export default api;
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-export const refactorCode = async (code) => {
-  try {
-    const res = await fetch("http://localhost:8000/code-refactorer", {
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const apiService = {
+  async explainCodebase(zipFile, query) {
+    if (USE_MOCK) {
+      await delay(1200);
+      return { session_id: "mock-session-123", structured_explanation: mockData.codeExplainer };
+    }
+    const formData = new FormData();
+    formData.append("zip_file", zipFile);
+    formData.append("query", query);
+
+    const response = await fetch(`${BASE_URL}/api/endpoints/code-explainer`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
+  },
+
+  async generateBoilerplate(algorithm, language) {
+    if (USE_MOCK) {
+      await delay(800);
+      return mockData.boilerplateGenerator;
+    }
+    const response = await fetch(`${BASE_URL}/boilerplate-generator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ algorithm, language }),
+    });
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
+  },
+
+  async explainCodeCanvas(imageFile) {
+    if (USE_MOCK) {
+      await delay(1500);
+      return mockData.codeCanvas;
+    }
+    const formData = new FormData();
+    formData.append("image", imageFile);
+
+    const response = await fetch(`${BASE_URL}/code-canvas`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
+  },
+
+  async refactorCode(code) {
+    if (USE_MOCK) {
+      await delay(900);
+      return mockData.codeRefactorer;
+    }
+    const response = await fetch(`${BASE_URL}/code-refactorer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
     });
-    const data = await res.json();
-    return data.refactored_code || "No response.";
-  } catch (error) {
-    console.error("Refactor API Error:", error);
-    return "Error: Unable to get refactored code.";
-  }
-};
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
+  },
 
-
-export const generateBoilerplate = async (algorithm, language) => {
-  try {
-    const response = await api.post("/boilerplate-generator", {
-      algorithm,
-      language,
+  async analyseDirectory(structure) {
+    if (USE_MOCK) {
+      await delay(1000);
+      return mockData.directoryAnalyser;
+    }
+    const response = await fetch(`${BASE_URL}/directory-analyser`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ structure }),
     });
-    return response.data.code || "No result received from the server.";
-  } catch (err) {
-    console.error("Boilerplate API Error:", err);
-    return "Something went wrong. Please try again.";
-  }
-};
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
+  },
 
-export const analyzeDirectory = async (structure) => {
-  try {
-    const response = await api.post("/directory-analyser", { structure });
-    return response.data?.summary || "No result received from the server.";
-  } catch (error) {
-    console.error("Directory Analyser Error:", error);
-    return "Error analyzing the directory.";
-  }
-};
+  async getReadmeInsights(readmeFile, extraFile) {
+    if (USE_MOCK) {
+      await delay(1400);
+      return mockData.readmeInsights;
+    }
+    const formData = new FormData();
+    if (readmeFile) formData.append("readme_file", readmeFile);
+    if (extraFile) formData.append("extra_file", extraFile);
 
-
-export const getReadmeInsights = async (formData) => {
-  try {
-    const res = await api.post("/readme-insights", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await fetch(`${BASE_URL}/readme-insights`, {
+      method: "POST",
+      body: formData,
     });
-    return res.data.result || "No result received from server.";
-  } catch (err) {
-    console.error("Readme Insights Error:", err);
-    throw err;
-  }
-};
-
-
-export const getCodeCanvas = async (imageFile) => {
-  const formData = new FormData();
-  formData.append("image", imageFile);
-  try {
-    const response = await axios.post(`http://127.0.0.1:8000/code-canvas`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Code Canvas Error:", error);
-    return null;
-  }
-};
-
-
-
-export const sendCodeExplanation = async (zipFile, query) => {
-  const formData = new FormData();
-  formData.append("zip_file", zipFile);
-  formData.append("query", query);
-
-  try {
-    const response = await axios.post("http://127.0.0.1:8000/code-explainer", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    return response.data.explanation || "No explanation received.";
-  } catch (error) {
-    console.error("Code Explainer Error:", error);
-    throw error;
+    if (!response.ok) throw new Error("Backend response error");
+    return response.json();
   }
 };

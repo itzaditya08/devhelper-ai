@@ -1,4 +1,3 @@
-# app/core/utils.py
 
 import os
 import zipfile
@@ -52,10 +51,10 @@ def load_code_files(folder_path: str, extensions: List[str] = None) -> List[Dict
     return loaded_files
 
 
-
 def get_all_code_files(folder_path: str, extensions: List[str] = None) -> List[str]:
     """
     Recursively scans a folder and returns all code file paths with given extensions.
+    Skips hidden system metadata files and macOS system directories.
     """
     if extensions is None:
         extensions = [".py", ".js", ".ts", ".java", ".cpp", ".c", ".html", ".css", ".json", ".md"]
@@ -63,7 +62,15 @@ def get_all_code_files(folder_path: str, extensions: List[str] = None) -> List[s
     code_files = []
 
     for root, _, files in os.walk(folder_path):
+        # Fix: Ignore hidden macOS metadata folders completely
+        if "__MACOSX" in root:
+            continue
+
         for file in files:
+            # Fix: Ignore hidden files and standard Apple double metadata clones (e.g., ._utils.py)
+            if file.startswith(".") or file.startswith("._"):
+                continue
+
             if any(file.endswith(ext) for ext in extensions):
                 code_files.append(os.path.join(root, file))
 
